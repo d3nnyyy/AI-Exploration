@@ -20,11 +20,15 @@ classNames = ["person", "bicycle", "car", "motorbike", "aeroplane", "bus", "trai
               "teddy bear", "hair drier", "toothbrush"
               ]
 
+mask = cv.imread("mask.png")
+
 while True:
 
     success, img = cap.read()
 
-    results = model(img, stream=True)
+    imgRegion = cv.bitwise_and(img, mask)
+
+    results = model(imgRegion, stream=True)
 
     for r in results:
         boxes = r.boxes
