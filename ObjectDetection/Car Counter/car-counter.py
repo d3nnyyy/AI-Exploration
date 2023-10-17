@@ -1,6 +1,6 @@
 import math
 
-import numpy
+import cv2
 from ultralytics import YOLO
 import cv2 as cv
 import cvzone
@@ -34,8 +34,10 @@ total_count = []
 while True:
 
     success, img = cap.read()
-
     imgRegion = cv.bitwise_and(img, mask)
+
+    imgGraphics = cv.imread("graphics.png", cv.IMREAD_UNCHANGED)
+    img = cvzone.overlayPNG(img, imgGraphics, (0, 0))
 
     results = model(imgRegion, stream=True)
 
@@ -90,8 +92,9 @@ while True:
                 total_count.append(id)
                 cv.line(img, (limits[0], limits[1]), (limits[2], limits[3]), (0, 255, 0), 5)
 
-    cvzone.putTextRect(img, f' Cars found: {len(total_count)}', (50, 50), scale=2,
-                       thickness=3, offset=10)
+    # cvzone.putTextRect(img, f' Cars found: {len(total_count)}', (50, 50), scale=2,
+    #                    thickness=3, offset=10)
+    cv2.putText(img, str(len(total_count)), (255, 100), cv.FONT_HERSHEY_PLAIN, 5, (50, 50, 255), 8)
 
     cv.imshow("MASK", imgRegion)
     cv.imshow("Image", img)
