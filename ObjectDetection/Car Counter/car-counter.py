@@ -28,6 +28,9 @@ mask = cv.imread("mask.png")
 
 tracker = Sort(max_age=20, min_hits=3, iou_threshold=0.3)
 
+limits = [340, 350, 673, 350]
+total_count = []
+
 while True:
 
     success, img = cap.read()
@@ -64,19 +67,32 @@ while True:
                     or currentClass == "bicycle":
                 # cvzone.putTextRect(img, f'{classNames[cls]} {confidence}', (max(0, x1), max(350, y1)), scale=0.7,
                 #                    thickness=1)
-                cvzone.cornerRect(img, (x1, y1, w, h), l=9, rt=5)
+                # cvzone.cornerRect(img, (x1, y1, w, h), l=9, rt=5)
                 currentArray = np.array([x1, y1, x2, y2, confidence])
                 detections = np.vstack((detections, currentArray))
 
     results_tracker = tracker.update(detections)
 
+    cv.line(img, (limits[0], limits[1]), (limits[2], limits[3]), (0, 0, 255), 5)
+
     for result in results_tracker:
         x1, y1, x2, y2, id = result
         x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
         print(result)
-        cvzone.cornerRect(img, (x1, y1, w, h), l=9, rt=2, colorR=(255, 0, 0))
+        cvzone.cornerRect(img, (x1, y1, w, h), l=9, rt=2, colorR=(255, 0, 255))
         cvzone.putTextRect(img, f'{int(id)}', (max(0, x1), max(35, y1)), scale=2,
                            thickness=3, offset=10)
 
+        cx, cy = x1 + w // 2, y1 + h // 2
+
+        if limits[0] < cx < limits[2] and limits[1] - 30 < cy < limits[1] + 30:
+            if total_count.count(id) == 0:
+                total_count.append(id)
+                cv.line(img, (limits[0], limits[1]), (limits[2], limits[3]), (0, 255, 0), 5)
+
+    cvzone.putTextRect(img, f' Cars found: {len(total_count)}', (50, 50), scale=2,
+                       thickness=3, offset=10)
+
+    cv.imshow("MASK", imgRegion)
     cv.imshow("Image", img)
-    cv.waitKey(0)
+    cv.waitKey(1)
