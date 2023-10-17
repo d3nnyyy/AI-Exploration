@@ -24,9 +24,20 @@ while True:
     # Process the image using mediapipe hands
     results = hands.process(imgRGB)
 
-    # Draw hand landmarks on the image
+    # Check if hands are detected
     if results.multi_hand_landmarks:
         for hand_landmarks in results.multi_hand_landmarks:
+
+            # Print the hand landmarks
+            for id, lm in enumerate(hand_landmarks.landmark):
+                # Get the height, width, and number of channels of the image
+                h, w, c = img.shape
+                cx, cy = int(lm.x * w), int(lm.y * h)
+                print("ID: ", id, "x: ", cx, "y: ", cy)
+
+                cv.circle(img, (cx, cy), 15, (255, 0, 255), cv.FILLED)
+
+            # Draw the hand landmarks
             mpDraw.draw_landmarks(img, hand_landmarks, mpHands.HAND_CONNECTIONS)
 
     cv.imshow("Image", img)
