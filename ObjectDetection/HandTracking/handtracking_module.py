@@ -57,7 +57,7 @@ class HandTracker:
             for hand_landmarks in self.results.multi_hand_landmarks:
                 if draw:
                     # Draw landmarks and hand connections on the image.
-                    self.mpDraw.draw_landmarks(img, hand_landmarks, self.mpHands.HAND_CONNECTIONS)
+                    self.mp_draw.draw_landmarks(img, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
         return img
 
     def find_position(self, img, hand_no=0, draw=True):
