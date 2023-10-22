@@ -10,18 +10,26 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.linear_model import LinearRegression, Lasso
 from sklearn.tree import DecisionTreeRegressor
 
+# Set a common figure size for plots
 matplotlib.rcParams["figure.figsize"] = (20, 10)
 
+# Step 1: Load and Preprocess Data
 df1 = pd.read_csv("bengaluru_house_prices.csv")
 df2 = df1.drop(['area_type', 'society', 'balcony', 'availability'], axis='columns')
 df3 = df2.dropna()
 
+# Print the count of null values in each column
 print(df3.isnull().sum())
+
+# Display unique values in the 'size' column
 print(df3['size'].unique())
 
+# Extract the number of bedrooms (BHK) from the 'size' column and create a new 'bhk' column
 df3['bhk'] = df3['size'].apply(lambda x: int(x.split(' ')[0]))
 
 
+# Step 2: Handle Total Square Feet Column
+# Define a function to check if a value can be converted to a float
 def is_float(x):
     try:
         float(x)
@@ -30,9 +38,11 @@ def is_float(x):
     return True
 
 
+# Display rows with non-numeric values in the 'total_sqft' column
 print(df3[~df3['total_sqft'].apply(is_float)].head(10))
 
 
+# Define a function to convert 'total_sqft' values to numeric, handling ranges like '1000-1500'
 def convert_sqft_to_num(x):
     tokens = x.split('-')
     if len(tokens) == 2:
@@ -47,34 +57,40 @@ df4 = df3.copy()
 df4['total_sqft'] = df4['total_sqft'].apply(convert_sqft_to_num)
 print(df4.head())
 
+# Step 3: Calculate Price Per Square Feet
 df5 = df4.copy()
 df5['price_per_sqft'] = df5['price'] * 100000 / df5['total_sqft']
 print(df5.head())
 
+# Step 4: Handle Location Data
+# Display the count of unique locations
 print(len(df5.location.unique()))
 
+# Remove leading and trailing whitespace from location names
 df5.location = df5.location.apply(lambda x: x.strip())
+
+# Count the number of data points for each location
 location_stats = df5.groupby('location')['location'].agg('count').sort_values(ascending=False)
 print(location_stats)
 
+# Identify locations with less than or equal to 10 data points and categorize them as 'other'
 print(len(location_stats[location_stats <= 10]))
-
 location_stats_less_than_10 = location_stats[location_stats <= 10]
-
 df5.location = df5.location.apply(lambda x: 'other' if x in location_stats_less_than_10 else x)
-
 print(len(df5.location.unique()))
 
+# Step 5: Remove Outliers Based on Total Square Feet per Bedroom
 print(df5[df5.total_sqft / df5.bhk < 300].head())
 print(df5.shape)
 
 df6 = df5[~(df5.total_sqft / df5.bhk < 300)]
-
 print(df6.shape)
 
+# Display statistics of the 'price_per_sqft' column
 print(df6.price_per_sqft.describe())
 
 
+# Step 6: Remove Outliers Using Standard Deviation
 def remove_pps_outliers(df):
     df_out = pd.DataFrame()
     for key, subdf in df.groupby('location'):
@@ -86,10 +102,10 @@ def remove_pps_outliers(df):
 
 
 df7 = remove_pps_outliers(df6)
-
 print(df7.shape)
 
 
+# Step 7: Create Scatter Plot
 def plot_scatter_chart(df, location):
     bhk2 = df[(df.location == location) & (df.bhk == 2)]
     bhk3 = df[(df.location == location) & (df.bhk == 3)]
@@ -103,9 +119,9 @@ def plot_scatter_chart(df, location):
     plt.show()
 
 
-# plot_scatter_chart(df7, "Hebbal")
+# Example usage: plot_scatter_chart(df7, "Hebbal")
 
-
+# Step 8: Remove BHK Outliers
 def remove_bhk_outliers(df):
     exclude_indices = np.array([])
     for location, location_df in df.groupby('location'):
@@ -126,45 +142,30 @@ def remove_bhk_outliers(df):
 
 df8 = remove_bhk_outliers(df7)
 
-# plot_scatter_chart(df8, "Hebbal")
-
-
-# plt.hist(df8.price_per_sqft, rwidth=0.8)
-# plt.xlabel("Price Per Square Feet")
-# plt.ylabel("Count")
-# plt.show()
-
-# plt.hist(df8.bath, rwidth=0.8)
-# plt.xlabel("Number of bathrooms")
-# plt.ylabel("Count")
-# plt.show()
-
+# Step 9: Feature Engineering and Data Transformation
 df9 = df8[df8.bath < df8.bhk + 2]
-
 df10 = df9.drop(['size', 'price_per_sqft'], axis='columns')
 print(df10.head(3))
 
+# One-Hot Encoding for Location
 dummies = pd.get_dummies(df10.location)
 df11 = pd.concat([df10, dummies.drop('other', axis='columns')], axis='columns')
-
 df12 = df11.drop('location', axis='columns')
 print(df12.head(2))
 
+# Step 10: Model Building
 x = df12.drop('price', axis='columns')
 y = df12.price
-
 X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=10)
 
 lr_clf = LinearRegression()
 lr_clf.fit(X_train, y_train)
+
+# Evaluate the model
 print(lr_clf.score(X_test, y_test))
 
-cv = ShuffleSplit(n_splits=5, test_size=0.2, random_state=0)
 
-
-# print(cross_val_score(LinearRegression(), x, y, cv=cv))
-
-
+# Step 11: Model Selection Using GridSearchCV
 def find_best_model_using_gridsearchcv(x, y):
     algos = {
         'linear_regression': {
@@ -202,12 +203,9 @@ def find_best_model_using_gridsearchcv(x, y):
     return pd.DataFrame(scores, columns=['model', 'best_score', 'best_params'])
 
 
-# pd.set_option('display.max_columns', None)
-# print(find_best_model_using_gridsearchcv(x, y))
-# pd.reset_option('display.max_columns')
+# Example usage: find_best_model_using_gridsearchcv(x, y)
 
-# print(x.columns)
-
+# Step 12: Model Prediction
 def predict_price(location, sqft, bath, bhk, x):
     # global x
     loc_index = np.where(x.columns == location)[0][0]
@@ -222,8 +220,9 @@ def predict_price(location, sqft, bath, bhk, x):
     return lr_clf.predict([x])[0]
 
 
-print(predict_price('1st Phase JP Nagar', 1000, 3, 3, x))
+# Example usage: predict_price('1st Phase JP Nagar', 1000, 3, 3, x)
 
+# Step 13: Save Model and Columns Information
 with open('bengaluru_house_prices_model.pickle', 'wb') as f:
     pickle.dump(lr_clf, f)
 
