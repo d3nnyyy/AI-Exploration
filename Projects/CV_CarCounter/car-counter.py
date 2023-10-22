@@ -6,10 +6,10 @@ import cvzone
 from sort import *
 
 # Initialize the video capture with the path to the video file.
-cap = cv.VideoCapture("../Videos/cars.mp4")
+cap = cv.VideoCapture("Videos/cars.mp4")
 
 # Initialize the YOLO model with the pre-trained weights.
-model = YOLO("../Yolo-Weights/yolov8n.pt")
+model = YOLO("Yolo-Weights/yolov8n.pt")
 
 # Define a list of class names for object detection.
 classNames = ["person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", "truck", "boat",
