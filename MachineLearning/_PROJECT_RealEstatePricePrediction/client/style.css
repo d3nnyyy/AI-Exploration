@@ -1,0 +1,82 @@
+body {
+        font-family: Arial, sans-serif;
+        background-image: url('https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+}
+
+.form {
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        text-align: center;
+}
+
+h2 {
+        font-size: 1.5em;
+        color: #007BFF;
+        margin-top: 20px;
+}
+
+input[type="text"],
+select {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+}
+
+.switch-field {
+        display: flex;
+        justify-content: center;
+}
+
+.switch-field input[type="radio"] {
+        display: none;
+}
+
+.switch-field label {
+        background-color: #F49A31;
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 25px;
+        cursor: pointer;
+        margin: 0 10px;
+        font-weight: bold;
+        transition: background-color 0.3s;
+}
+
+.switch-field input[type="radio"]:checked+label {
+        background-color: #FFD700;
+}
+
+.submit {
+        background-color: transparent;
+        border: 2px solid #007BFF;
+        color: #007BFF;
+        padding: 10px 20px;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 1.2em;
+        margin-top: 20px;
+}
+
+.submit:hover {
+        background-color: #007BFF;
+        color: #fff;
+}
+
+.result {
+        margin-top: 20px;
+        text-align: center;
+}
