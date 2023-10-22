@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib
-from sklearn.model_selection import train_test_split, ShuffleSplit, cross_val_score
+from sklearn.model_selection import train_test_split, ShuffleSplit
 from sklearn.model_selection import GridSearchCV
 from sklearn.linear_model import LinearRegression, Lasso
 from sklearn.tree import DecisionTreeRegressor
@@ -154,9 +154,9 @@ df12 = df11.drop('location', axis='columns')
 print(df12.head(2))
 
 # Step 10: Model Building
-x = df12.drop('price', axis='columns')
+X = df12.drop('price', axis='columns')
 y = df12.price
-X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=10)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=10)
 
 lr_clf = LinearRegression()
 lr_clf.fit(X_train, y_train)
@@ -166,7 +166,7 @@ print(lr_clf.score(X_test, y_test))
 
 
 # Step 11: Model Selection Using GridSearchCV
-def find_best_model_using_gridsearchcv(x, y):
+def find_best_model_using_gridsearchcv(X, y):
     algos = {
         'linear_regression': {
             'model': LinearRegression(),
@@ -194,7 +194,7 @@ def find_best_model_using_gridsearchcv(x, y):
     cv = ShuffleSplit(n_splits=5, test_size=0.2, random_state=0)
     for algo_name, config in algos.items():
         gs = GridSearchCV(config['model'], config['params'], cv=cv, return_train_score=False)
-        gs.fit(x, y)
+        gs.fit(X, y)
         scores.append({
             'model': algo_name,
             'best_score': gs.best_score_,
@@ -203,14 +203,13 @@ def find_best_model_using_gridsearchcv(x, y):
     return pd.DataFrame(scores, columns=['model', 'best_score', 'best_params'])
 
 
-# Example usage: find_best_model_using_gridsearchcv(x, y)
+# Example usage: find_best_model_using_gridsearchcv(X, y)
 
 # Step 12: Model Prediction
-def predict_price(location, sqft, bath, bhk, x):
-    # global x
-    loc_index = np.where(x.columns == location)[0][0]
+def predict_price(location, sqft, bath, bhk):
+    loc_index = np.where(X.columns == location)[0][0]
 
-    x = np.zeros(len(x.columns))
+    x = np.zeros(len(X.columns))
     x[0] = sqft
     x[1] = bath
     x[2] = bhk
@@ -220,14 +219,14 @@ def predict_price(location, sqft, bath, bhk, x):
     return lr_clf.predict([x])[0]
 
 
-# Example usage: predict_price('1st Phase JP Nagar', 1000, 3, 3, x)
+# Example usage: predict_price('1st Phase JP Nagar', 1000, 3, 3)
 
 # Step 13: Save Model and Columns Information
 with open('bengaluru_house_prices_model.pickle', 'wb') as f:
     pickle.dump(lr_clf, f)
 
 columns = {
-    'data_columns': [col.lower() for col in x.columns]
+    'data_columns': [col.lower() for col in X.columns]
 }
 
 with open('columns.json', 'w') as f:
