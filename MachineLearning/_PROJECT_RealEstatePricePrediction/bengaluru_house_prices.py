@@ -1,3 +1,6 @@
+import json
+import pickle
+
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
@@ -205,8 +208,8 @@ def find_best_model_using_gridsearchcv(x, y):
 
 # print(x.columns)
 
-def predict_price(location, sqft, bath, bhk):
-    global x
+def predict_price(location, sqft, bath, bhk, x):
+    # global x
     loc_index = np.where(x.columns == location)[0][0]
 
     x = np.zeros(len(x.columns))
@@ -219,4 +222,14 @@ def predict_price(location, sqft, bath, bhk):
     return lr_clf.predict([x])[0]
 
 
-print(predict_price('1st Phase JP Nagar', 1000, 3, 3))
+print(predict_price('1st Phase JP Nagar', 1000, 3, 3, x))
+
+with open('bengaluru_house_prices_model.pickle', 'wb') as f:
+    pickle.dump(lr_clf, f)
+
+columns = {
+    'data_columns': [col.lower() for col in x.columns]
+}
+
+with open('columns.json', 'w') as f:
+    f.write(json.dumps(columns))
