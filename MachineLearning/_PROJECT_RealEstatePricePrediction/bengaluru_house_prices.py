@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
 
 matplotlib.rcParams["figure.figsize"] = (20, 10)
 
@@ -132,7 +134,23 @@ df8 = remove_bhk_outliers(df7)
 # plt.ylabel("Count")
 # plt.show()
 
-df9 = df8[df8.bath > df8.bhk + 2]
+df9 = df8[df8.bath < df8.bhk + 2]
 
 df10 = df9.drop(['size', 'price_per_sqft'], axis='columns')
 print(df10.head(3))
+
+dummies = pd.get_dummies(df10.location)
+df11 = pd.concat([df10, dummies.drop('other', axis='columns')], axis='columns')
+
+df12 = df11.drop('location', axis='columns')
+print(df12.head(2))
+
+
+x = df12.drop('price', axis='columns')
+y = df12.price
+
+X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=10)
+
+lr_clf = LinearRegression()
+lr_clf.fit(X_train, y_train)
+print(lr_clf.score(X_test, y_test))
