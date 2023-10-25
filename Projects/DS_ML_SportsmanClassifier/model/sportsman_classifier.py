@@ -140,6 +140,15 @@ for img_dir in img_dirs:
             celebrity_file_names_dict[celebrity_name].append(cropped_file_path)
             count += 1
 
+# manually examine cropped folder and delete unwanted images
+celebrity_file_names_dict = {}
+for img_dir in cropped_image_dirs:
+    celebrity_name = img_dir.split('/')[-1]
+    file_list = []
+    for entry in os.scandir(img_dir):
+        file_list.append(entry.path)
+    celebrity_file_names_dict[celebrity_name] = file_list
+
 # Create a class dictionary
 class_dict = {}
 count = 0
