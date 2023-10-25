@@ -239,5 +239,11 @@ print(best_estimators['logistic_regression'].score(x_test, y_test))
 
 best_clf = best_estimators['logistic_regression']
 
+# save the model as a pickle in a file
+joblib.dump(best_clf, 'saved_model.pkl')
+
+with open("class_dictionary.json", "w") as f:
+    f.write(json.dumps(class_dict))
+
 # Wait for a key press to close the OpenCV window
 cv.waitKey(0)
