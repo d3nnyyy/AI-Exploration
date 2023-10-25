@@ -4,6 +4,10 @@ import cv2 as cv
 import numpy as np
 import pywt
 from matplotlib import pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
 
 # Load the image
 img = cv.imread("test_images/MESSI.jpg")
@@ -39,6 +43,7 @@ for (x, y, w, h) in faces:
 # Display the image with rectangles drawn
 plt.imshow(img, cmap='gray')
 
+
 # Define a function for wavelet transformation
 def w2d(img, mode='haar', level=1):
     """
@@ -73,6 +78,7 @@ def w2d(img, mode='haar', level=1):
 
     return img_array_h
 
+
 # Define a function to get a cropped image if it contains at least 2 eyes
 def get_cropped_image_if_2_eyes(image_path):
     """
@@ -98,6 +104,7 @@ def get_cropped_image_if_2_eyes(image_path):
         eyes = eye_cascade.detectMultiScale(roi_gray)
         if len(eyes) >= 2:
             return roi_color
+
 
 # Get and display the cropped image
 cropped_image = get_cropped_image_if_2_eyes("test_images/MESSI.jpg")
@@ -159,7 +166,7 @@ for celebrity_name in celebrity_file_names_dict.keys():
 print(class_dict)
 
 # Prepare data for machine learning
-x = []
+X = []
 y = []
 for celebrity_name, training_files in celebrity_file_names_dict.items():
     for training_image in training_files:
@@ -168,11 +175,18 @@ for celebrity_name, training_files in celebrity_file_names_dict.items():
         img_har = w2d(img, 'db1', 5)
         scaled_har_img = cv.resize(img_har, (32, 32))
         combined_img = np.vstack((scaled_raw_img.reshape(32 * 32 * 3, 1), scaled_har_img.reshape(32 * 32, 1)))
-        x.append(combined_img)
+        X.append(combined_img)
         y.append(class_dict[celebrity_name])
 
-print(len(x))
+print(len(X))
 print(len(y))
+
+X = np.array(X).reshape(len(X), 4096).astype(float)
+
+x_train, x_test, y_train, y_test = train_test_split(X, y, random_state=0)
+pipe = Pipeline([('scaler', StandardScaler()), ('svc', SVC(kernel='rbf', C=10))])
+pipe.fit(x_train, y_train)
+print(pipe.score(x_test, y_test))
 
 # Wait for a key press to close the OpenCV window
 cv.waitKey(0)
