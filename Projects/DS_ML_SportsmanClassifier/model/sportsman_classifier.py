@@ -1,11 +1,17 @@
+import json
 import os
 import shutil
 import cv2 as cv
+import joblib
 import numpy as np
+import pandas as pd
 import pywt
 from matplotlib import pyplot as plt
-from sklearn.model_selection import train_test_split
-from sklearn.pipeline import Pipeline
+from sklearn import svm
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
@@ -187,6 +193,51 @@ x_train, x_test, y_train, y_test = train_test_split(X, y, random_state=0)
 pipe = Pipeline([('scaler', StandardScaler()), ('svc', SVC(kernel='rbf', C=10))])
 pipe.fit(x_train, y_train)
 print(pipe.score(x_test, y_test))
+
+model_params = {
+    'svm': {
+        'model': svm.SVC(gamma='auto', probability=True),
+        'params': {
+            'svc__C': [1, 10, 100, 1000],
+            'svc__kernel': ['rbf', 'linear']
+        }
+    },
+    'random_forest': {
+        'model': RandomForestClassifier(),
+        'params': {
+            'randomforestclassifier__n_estimators': [1, 5, 10]
+        }
+    },
+    'logistic_regression': {
+        'model': LogisticRegression(solver='liblinear', multi_class='auto'),
+        'params': {
+            'logisticregression__C': [1, 5, 10]
+        }
+    }
+}
+
+scores = []
+best_estimators = {}
+
+for algo, mp in model_params.items():
+    pipe = make_pipeline(StandardScaler(), mp['model'])
+    clf = GridSearchCV(pipe, mp['params'], cv=5, return_train_score=False)
+    clf.fit(x_train, y_train)
+    scores.append({
+        'model': algo,
+        'best_score': clf.best_score_,
+        'best_params': clf.best_params_
+    })
+    best_estimators[algo] = clf.best_estimator_
+
+df = pd.DataFrame(scores, columns=['model', 'best_score', 'best_params'])
+
+pd.set_option('display.max_columns', 5)
+
+print(df)
+print(best_estimators['logistic_regression'].score(x_test, y_test))
+
+best_clf = best_estimators['logistic_regression']
 
 # Wait for a key press to close the OpenCV window
 cv.waitKey(0)
