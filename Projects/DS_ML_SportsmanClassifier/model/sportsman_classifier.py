@@ -1,6 +1,8 @@
 import os
 import shutil
 import cv2 as cv
+import numpy as np
+import pywt
 from matplotlib import pyplot as plt
 
 # Load the image
@@ -36,9 +38,42 @@ for (x, y, w, h) in faces:
 
 # Display the image with rectangles drawn
 plt.imshow(img, cmap='gray')
-plt.show()
 
+# Define a function for wavelet transformation
+def w2d(img, mode='haar', level=1):
+    """
+    Perform wavelet transformation on an image.
 
+    Args:
+        img (numpy.ndarray): Input image.
+        mode (str): Wavelet transformation mode.
+        level (int): Transformation level.
+
+    Returns:
+        numpy.ndarray: Transformed image.
+    """
+    img_array = img
+    # Datatype conversions
+    # convert to grayscale
+    img_array = cv.cvtColor(img_array, cv.COLOR_RGB2GRAY)
+    # convert to float
+    img_array = np.float32(img_array)
+    img_array /= 255
+    # compute coefficients
+    coeffs = pywt.wavedec2(img_array, mode, level=level)
+
+    # Process Coefficients
+    coeffs_h = list(coeffs)
+    coeffs_h[0] *= 0
+
+    # Reconstruction
+    img_array_h = pywt.waverec2(coeffs_h, mode)
+    img_array_h *= 255
+    img_array_h = np.uint8(img_array_h)
+
+    return img_array_h
+
+# Define a function to get a cropped image if it contains at least 2 eyes
 def get_cropped_image_if_2_eyes(image_path):
     """
     Load an image, detect and crop the face if it contains at least 2 eyes.
@@ -64,11 +99,9 @@ def get_cropped_image_if_2_eyes(image_path):
         if len(eyes) >= 2:
             return roi_color
 
-
 # Get and display the cropped image
 cropped_image = get_cropped_image_if_2_eyes("test_images/MESSI.jpg")
 plt.imshow(cropped_image)
-plt.show()
 
 # Directory paths
 path_to_imgs = 'dataset/'
@@ -106,6 +139,31 @@ for img_dir in img_dirs:
             cv.imwrite(cropped_file_path, roi_color)
             celebrity_file_names_dict[celebrity_name].append(cropped_file_path)
             count += 1
+
+# Create a class dictionary
+class_dict = {}
+count = 0
+for celebrity_name in celebrity_file_names_dict.keys():
+    class_dict[celebrity_name] = count
+    count += 1
+
+print(class_dict)
+
+# Prepare data for machine learning
+x = []
+y = []
+for celebrity_name, training_files in celebrity_file_names_dict.items():
+    for training_image in training_files:
+        img = cv.imread(training_image)
+        scaled_raw_img = cv.resize(img, (32, 32))
+        img_har = w2d(img, 'db1', 5)
+        scaled_har_img = cv.resize(img_har, (32, 32))
+        combined_img = np.vstack((scaled_raw_img.reshape(32 * 32 * 3, 1), scaled_har_img.reshape(32 * 32, 1)))
+        x.append(combined_img)
+        y.append(class_dict[celebrity_name])
+
+print(len(x))
+print(len(y))
 
 # Wait for a key press to close the OpenCV window
 cv.waitKey(0)
