@@ -10,7 +10,6 @@ def mae(predicted, true):
         total_error += abs(yp - yt)
     print("Total error is:", total_error)
     mae = total_error / len(predicted)
-    print("Mean absolute error is:", mae)
     return mae
 
 
@@ -26,3 +25,17 @@ y_predicted_eps = np.array(y_predicted_eps)
 print(y_predicted_eps)
 
 print("log loss:", -np.mean(y_true * np.log(y_predicted_eps) + (1 - y_true) * np.log(1 - y_predicted_eps)))
+
+
+def mse(predicted, true):
+    total_error = 0
+    for yp, yt in zip(predicted, true):
+        total_error += (yp - yt) ** 2
+    print("Total error is:", total_error)
+    mse = total_error / len(predicted)
+    return mse
+
+
+print("mse using mse function: ", mse(y_predicted, y_true))
+
+print("mse using numpy: ", np.mean((y_predicted - y_true)**2))
