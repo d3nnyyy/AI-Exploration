@@ -1,8 +1,6 @@
-import keras
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow import keras
-import numpy as np
 
 (x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
 
@@ -21,11 +19,16 @@ model = keras.Sequential([
     keras.layers.Dense(10, activation='sigmoid')
 ])
 
+tb_callback = tf.keras.callbacks.TensorBoard(
+    log_dir='logs/SGD',
+    histogram_freq=1
+)
+
 model.compile(
-    optimizer='adam',
+    optimizer='SGD',
     loss='sparse_categorical_crossentropy',
     metrics=['accuracy']
 )
 
-model.fit(x_train_flattened, y_train, epochs=5)
+model.fit(x_train_flattened, y_train, epochs=5, callbacks=[tb_callback])
 model.evaluate(x_test_flattened, y_test)
